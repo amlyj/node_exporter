@@ -68,6 +68,8 @@ func main() {
 	var (
 		listenAddress = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9100").String()
 		metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		pushGateway   = kingpin.Flag("web.push-gateway", "Address on which to push acceptor for ephemeral and batch jobs.").Default("localhost:9091").String()
+		jobName       = kingpin.Flag("web.job-name", "Jobs name.").Default("pushGateway").String()
 	)
 
 	log.AddFlags(kingpin.CommandLine)
@@ -87,7 +89,7 @@ func main() {
 	for n := range nc.Collectors {
 		log.Infof(" - %s", n)
 	}
-
+	go collector.PushMetrics(*listenAddress, *metricsPath, *pushGateway, *jobName)
 	// TODO(ts): Remove deprecated and problematic InstrumentHandlerFunc usage.
 	http.HandleFunc(*metricsPath, prometheus.InstrumentHandlerFunc("prometheus", handler))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
