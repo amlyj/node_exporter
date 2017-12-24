@@ -89,7 +89,7 @@ func main() {
 	for n := range nc.Collectors {
 		log.Infof(" - %s", n)
 	}
-	go collector.PushMetrics(*listenAddress, *metricsPath, *pushGateway, *jobName)
+	collector.PushMetrics(*listenAddress, *metricsPath, *pushGateway, *jobName)
 	// TODO(ts): Remove deprecated and problematic InstrumentHandlerFunc usage.
 	http.HandleFunc(*metricsPath, prometheus.InstrumentHandlerFunc("prometheus", handler))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
