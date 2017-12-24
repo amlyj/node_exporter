@@ -13,18 +13,7 @@ import (
 
 func PushMetrics(listenAddress string, metricsPath string, pushGateway string, jobName string) {
 	go startPush(listenAddress, metricsPath, pushGateway, jobName)
-	http.HandleFunc("/push", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
-			<head><title>push worker</title></head>
-			<body><h1>push worker</h1></body>
-			</html>`))
-	})
-	log.Infoln("pushGateway task Listening on", ":9901")
-	err := http.ListenAndServe(":9901", nil)
-	if err != nil {
-		log.Fatal("start error:")
-		log.Fatal(err)
-	}
+	log.Infoln("pushGateway task start.")
 }
 
 // loop push
