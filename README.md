@@ -38,7 +38,7 @@ infiniband | Exposes network statistics specific to InfiniBand and Intel OmniPat
 ipvs | Exposes IPVS status from `/proc/net/ip_vs` and stats from `/proc/net/ip_vs_stats`. | Linux
 loadavg | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris
 mdadm | Exposes statistics about devices in `/proc/mdstat` (does nothing if no `/proc/mdstat` present). | Linux
-meminfo | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux
+meminfo | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
 netdev | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD
 netstat | Exposes network statistics from `/proc/net/netstat`. This is the same information as `netstat -s`. | Linux
 sockstat | Exposes various statistics from `/proc/net/sockstat`. | Linux
@@ -80,7 +80,6 @@ tcpstat | Exposes TCP connection status information from `/proc/net/tcp` and `/p
 Name     | Description | OS
 ---------|-------------|----
 gmond | Exposes statistics from Ganglia. | _any_
-megacli | Exposes RAID statistics from MegaCLI. | Linux
 
 ### Textfile Collector
 
@@ -109,36 +108,18 @@ mv /path/to/directory/role.prom.$$ /path/to/directory/role.prom
 
 ### Filtering enabled collectors
 
-The node_exporter will expose all metrics from enabled collectors by default, but it can be passed an optional list of collectors to filter metrics. The `collect[]` parameter accepts values matching enabled collector names.
+The `node_exporter` will expose all metrics from enabled collectors by default.  This is the recommended way to collect metrics to avoid errors when comparing metrics of different familes.
 
-This can be useful for specifying different scrape intervals for different collectors in Prometheus:
+For advanced use the `node_exporter` can be passed an optional list of collectors to filter metrics. The `collect[]` parameter may be used multiple times.  In Prometheus configuration you can use this syntax under the [scrape config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#<scrape_config>).
 
-```yaml
-scrape_configs:
-  - job_name: 'node resources'
-    scrape_interval: 15s
-    static_configs:
-      - targets:
-        - '192.168.1.2:9100'
-    params:
-      collect[]:
-        - cpu
-        - meminfo
-        - diskstats
-        - netdev
-        - netstat
-
-  - job_name: 'node storage'
-    scrape_interval: 1m
-    static_configs:
-      - targets:
-        - '192.168.1.2:9100'
-    params:
-      collect[]:
-        - filefd
-        - filesystem
-        - xfs
 ```
+  params:
+    collect[]:
+      - foo
+      - bar
+```
+
+This can be useful for having different Prometheus servers collect specific metrics from nodes.
 
 ## Building and running
 

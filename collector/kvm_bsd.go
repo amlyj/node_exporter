@@ -1,4 +1,4 @@
-// Copyright 2015 The Prometheus Authors
+// Copyright 2017 The Prometheus Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -11,30 +11,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build !nomeminfo
+// +build freebsd dragonfly
+
 package collector
 
 import (
-	"os"
-	"testing"
+	"fmt"
+	"sync"
 )
 
-func TestDiskStats(t *testing.T) {
-	file, err := os.Open("fixtures/proc/diskstats")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
+// #cgo LDFLAGS: -lkvm
+// #include "kvm_bsd.h"
+import "C"
 
-	diskStats, err := parseDiskStats(file)
-	if err != nil {
-		t.Fatal(err)
+type kvm struct {
+	mu     sync.Mutex
+	hasErr bool
+}
+
+func (k *kvm) SwapUsedPages() (value uint64, err error) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if C._kvm_swap_used_pages((*C.uint64_t)(&value)) == -1 {
+		k.hasErr = true
+		return 0, fmt.Errorf("couldn't get kvm stats")
 	}
 
-	if want, got := "25353629", diskStats["sda4"][0]; want != got {
-		t.Errorf("want diskstats sda4 %s, got %s", want, got)
-	}
-
-	if want, got := "68", diskStats["mmcblk0p2"][10]; want != got {
-		t.Errorf("want diskstats mmcblk0p2 %s, got %s", want, got)
-	}
+	return value, nil
 }
