@@ -26,7 +26,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"github.com/prometheus/node_exporter/collector/ganglia"
+	"github.com/amlyj/node_exporter/collector/ganglia"
 )
 
 const (
