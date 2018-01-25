@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"strings"
+	"github.com/amlyj/node_exporter/config_collector"
 )
 
 func PushMetrics(listenAddress string, metricsPath string, pushGateway string, jobName string) {
@@ -50,6 +51,8 @@ func pushGateWay(listenAddress string, metricsPath string, pushGateway string, j
 		return
 	}
 	data := string(body)
+	// add yaml config metrics
+	data = config_collector.GetConfigCollectorMetrics(data)
 	resp, err := http.Post(postUrl, "multipart/form-data", strings.NewReader(data))
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -61,7 +64,7 @@ func pushGateWay(listenAddress string, metricsPath string, pushGateway string, j
 		fmt.Printf("%s", err)
 		return
 	}
-	log.Infoln("success!", time.Now())
+	log.Infoln("success!", resp.StatusCode, time.Now())
 }
 
 func Try(fun func(), handler func(interface{})) {
