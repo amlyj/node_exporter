@@ -26,14 +26,17 @@ enabled_collectors=$(cat << COLLECTORS
   netdev
   netstat
   nfs
+  nfsd
   qdisc
   sockstat
   stat
   textfile
   bonding
+  vmstat
   wifi
   xfs
   zfs
+  processes
 COLLECTORS
 )
 disabled_collectors=$(cat << COLLECTORS
@@ -41,7 +44,6 @@ disabled_collectors=$(cat << COLLECTORS
   time
   timex
   uname
-  vmstat
 COLLECTORS
 )
 cd "$(dirname $0)"
@@ -54,7 +56,7 @@ skip_re="^(go_|node_exporter_build_info|node_scrape_collector_duration_seconds|p
 arch="$(uname -m)"
 
 case "${arch}" in
-  ppc64le) fixture='collector/fixtures/e2e-ppc64le-output.txt' ;;
+  aarch64|ppc64le) fixture='collector/fixtures/e2e-64k-page-output.txt' ;;
   *) fixture='collector/fixtures/e2e-output.txt' ;;
 esac
 

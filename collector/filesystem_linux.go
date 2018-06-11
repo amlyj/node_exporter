@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	defIgnoredMountPoints = "^/(dev|proc|sys)($|/)"
-	defIgnoredFSTypes     = "^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$"
+	defIgnoredMountPoints = "^/(dev|proc|sys|var/lib/docker)($|/)"
+	defIgnoredFSTypes     = "^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$"
 	readOnly              = 0x1 // ST_RDONLY
 )
 
@@ -54,7 +54,7 @@ func (c *filesystemCollector) GetStats() ([]filesystemStats, error) {
 				labels:      labels,
 				deviceError: 1,
 			})
-			log.Errorf("Error on statfs() system call for %q: %s", labels.mountPoint, err)
+			log.Debugf("Error on statfs() system call for %q: %s", labels.mountPoint, err)
 			continue
 		}
 
@@ -87,6 +87,12 @@ func mountPointDetails() ([]filesystemLabels, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		parts := strings.Fields(scanner.Text())
+
+		// Ensure we handle the translation of \040 and \011
+		// as per fstab(5).
+		parts[1] = strings.Replace(parts[1], "\\040", " ", -1)
+		parts[1] = strings.Replace(parts[1], "\\011", "\t", -1)
+
 		filesystems = append(filesystems, filesystemLabels{
 			device:     parts[0],
 			mountPoint: parts[1],
